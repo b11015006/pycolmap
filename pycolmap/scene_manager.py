@@ -99,12 +99,12 @@ class SceneManager:
         self.cameras = OrderedDict()
 
         with open(input_file, 'rb') as f:
-            num_cameras = struct.unpack('L', f.read(8))[0]
+            num_cameras = struct.unpack('<Q', f.read(8))[0]
 
             for _ in range(num_cameras):
-                camera_id, camera_type, w, h = struct.unpack('IiLL', f.read(24))
+                camera_id, camera_type, w, h = struct.unpack('<IiQQ', f.read(24))
                 num_params = Camera.GetNumParams(camera_type)
-                params = struct.unpack('d' * num_params, f.read(8 * num_params))
+                params = struct.unpack(f'<{num_params}d', f.read(8 * num_params))
                 self.cameras[camera_id] = Camera(camera_type, w, h, params)
                 self.last_camera_id = max(self.last_camera_id, camera_id)
 
@@ -140,7 +140,7 @@ class SceneManager:
         self.images = OrderedDict()
 
         with open(input_file, 'rb') as f:
-            num_images = struct.unpack('L', f.read(8))[0]
+            num_images = struct.unpack('<Q', f.read(8))[0]
             image_struct = struct.Struct('<I 4d 3d I')
             for _ in range(num_images):
                 data = image_struct.unpack(f.read(image_struct.size))
@@ -151,7 +151,7 @@ class SceneManager:
                 name = b''.join(c for c in iter(lambda: f.read(1), b'\x00')).decode()
 
                 image = Image(name, camera_id, q, t)
-                num_points2D = struct.unpack('Q', f.read(8))[0]
+                num_points2D = struct.unpack('<Q', f.read(8))[0]
 
                 # Optimized code below.
                 # Read all elements as double first, then convert to array, slice it
@@ -228,7 +228,7 @@ class SceneManager:
 
     def _load_points3D_bin(self, input_file):
         with open(input_file, 'rb') as f:
-            num_points3D = struct.unpack('L', f.read(8))[0]
+            num_points3D = struct.unpack('<Q', f.read(8))[0]
 
             self.points3D = np.empty((num_points3D, 3))
             self.point3D_ids = np.empty(num_points3D, dtype=np.uint64)
@@ -249,7 +249,7 @@ class SceneManager:
 
                 self.point3D_id_to_point3D_idx[self.point3D_ids[i]] = i
 
-                data = struct.unpack(f'{2*track_len}I', f.read(2 * track_len * 4))
+                data = struct.unpack(f'<{2*track_len}I', f.read(2 * track_len * 4))
 
                 self.point3D_id_to_images[self.point3D_ids[i]] = \
                     np.array(data, dtype=np.uint32).reshape(track_len, 2)
