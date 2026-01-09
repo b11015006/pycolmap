@@ -62,7 +62,7 @@ class SceneManager:
         if self.image_path is None:
             try:
                 with open(project_file, 'r') as f:
-                    for line in iter(f.readline, ''):
+                    for line in f:
                         if line.startswith('image_path'):
                             self.image_path = line[11:].strip()
                             break
@@ -112,11 +112,11 @@ class SceneManager:
         self.cameras = OrderedDict()
 
         with open(input_file, 'r') as f:
-            for line in iter(lambda: f.readline().strip(), ''):
-                if not line or line.startswith('#'):
+            for line in f:
+                if line.startswith('#'):
                     continue
 
-                data = line.split()
+                data = line.strip().split()
                 camera_id = int(data[0])
                 self.cameras[camera_id] = Camera(
                     data[1], int(data[2]), int(data[3]), list(map(float, data[4:])))
@@ -184,13 +184,13 @@ class SceneManager:
         with open(input_file, 'r') as f:
             is_camera_description_line = False
 
-            for line in iter(lambda: f.readline().strip(), ''):
-                if not line or line.startswith('#'):
+            for line in f:
+                if line.startswith('#'):
                     continue
 
                 is_camera_description_line = not is_camera_description_line
 
-                data = line.split()
+                data = line.strip().split()
 
                 if is_camera_description_line:
                     image_id = int(data[0])
@@ -263,11 +263,11 @@ class SceneManager:
         self.point3D_errors = []
 
         with open(input_file, 'r') as f:
-            for line in iter(lambda: f.readline().strip(), ''):
-                if not line or line.startswith('#'):
+            for line in f:
+                if line.startswith('#'):
                     continue
 
-                data = line.split()
+                data = line.strip().split()
                 point3D_id = np.uint64(data[0])
 
                 self.point3D_ids.append(point3D_id)
